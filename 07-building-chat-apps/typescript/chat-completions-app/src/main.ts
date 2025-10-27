@@ -36,7 +36,7 @@ export async function main() {
 
         for await (const event of stream) {
         //    console.log(event);
-        if (event.type === 'response.output_text.delta') {
+            if (event.type === 'response.output_text.delta') {
                 process.stdout.write(event.delta);
             }
         }
