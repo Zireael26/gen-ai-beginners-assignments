@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 from openai import OpenAI
-from vector_db import connect_to_vector_db, create_collection, create_vector_embedding, get_similar_documents
+from vector_db import connect_to_vector_db, create_collection, get_similar_documents
 import pandas as pd
 from pathlib import Path
 
@@ -33,7 +33,8 @@ def add_data_to_collection(data_dir: str, collection):
 def main():
     openai_client = OpenAI()
     chroma_client = connect_to_vector_db()
-    collection = create_collection(chroma_client, "my_collection")
+    # chroma_client.reset()  # Clear existing data for fresh start
+    # collection = create_collection(chroma_client, "my_collection")
     
     # Need only be called once
     # add_data_to_collection("15-rag-and-vector-dbs/data", collection)
@@ -50,7 +51,7 @@ def main():
         reasoning={"effort": "low"},
         input=f"User Query: {prompt}\n\nRelevant Documents:\n" + "\n\n".join(similar_docs['document'].tolist())
     )
-    
+
     print()
     print(response.output_text)
 

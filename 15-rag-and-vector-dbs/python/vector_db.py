@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 from openai import OpenAI
 import chromadb
-from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
+# from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
 import pandas as pd
 
 load_dotenv()
@@ -9,16 +9,21 @@ load_dotenv()
 EMBEDDING_MODEL_NAME = "text-embedding-3-small"
 
 def connect_to_vector_db():
-    chroma_client = chromadb.PersistentClient(path="15-rag-and-vector-dbs/chroma_db")
+    chroma_client = chromadb.PersistentClient(
+        path="15-rag-and-vector-dbs/chroma_db", 
+        settings=chromadb.Settings(
+            allow_reset=True
+        )
+    )
     return chroma_client
 
 def create_collection(chroma_client, collection_name: str):
     print(chroma_client.heartbeat())
     collection = chroma_client.get_or_create_collection(
         name=collection_name,
-        embedding_function=OpenAIEmbeddingFunction(
-            model_name=EMBEDDING_MODEL_NAME
-        )
+        # embedding_function=OpenAIEmbeddingFunction(
+        #     model_name=EMBEDDING_MODEL_NAME
+        # )
     )
     return collection
 
