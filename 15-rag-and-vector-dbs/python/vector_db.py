@@ -2,16 +2,18 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import chromadb
 from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
+import pandas as pd
 
 load_dotenv()
+
 EMBEDDING_MODEL_NAME = "text-embedding-3-small"
-OPENAI_MODEL_NAME = "gpt-5-nano"
 
 def connect_to_vector_db():
-    chroma_client = chromadb.Client()
+    chroma_client = chromadb.PersistentClient(path="15-rag-and-vector-dbs/chroma_db")
     return chroma_client
 
 def create_collection(chroma_client, collection_name: str):
+    print(chroma_client.heartbeat())
     collection = chroma_client.get_or_create_collection(
         name=collection_name,
         embedding_function=OpenAIEmbeddingFunction(
@@ -21,10 +23,12 @@ def create_collection(chroma_client, collection_name: str):
     return collection
 
 def add_document_to_collection(chroma_client, collection_name: str, document: dict):
+    print(chroma_client.heartbeat())
     collection = chroma_client.get_collection(name=collection_name)
     collection.add(documents=[document])
 
 def query_collection(chroma_client, collection_name: str, query: str, n_results: int = 5):
+    print(chroma_client.heartbeat())
     collection = chroma_client.get_collection(name=collection_name)
     results = collection.query(query_texts=[query], n_results=n_results)
     return results
@@ -45,11 +49,12 @@ def cosine_similarity(vec1: list, vec2: list) -> float:
         return 0.0
     return dot_product / (magnitude1 * magnitude2)
 
-def main():
-    openai_client = OpenAI()
-    chroma_client = connect_to_vector_db()
-    collection = create_collection(chroma_client, "my_collection")
+def get_similar_documents(chroma_client, collection_name: str, query_string: str, top_k: int = 5):
+    results = query_collection(chroma_client, collection_name, query_string, n_results=top_k)
 
-
-if __name__ == "__main__":
-    main()
+    similarity_df = pd.DataFrame({
+        'id': results['ids'][0],
+        'document': results['documents'][0],
+        'distances': results['distances'][0]
+    })
+    return similarity_df
